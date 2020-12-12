@@ -1,27 +1,27 @@
 import datetime
 import logging
 import uuid
+import warnings
 from collections import Callable
 from functools import partial
 from io import BytesIO
 
 import pandas as pd
 
-from great_expectations.core.batch import Batch
-from great_expectations.datasource.types import BatchMarkers
+from great_expectations.core.batch import Batch, BatchMarkers
+from great_expectations.datasource.util import S3Url, hash_pandas_dataframe
 from great_expectations.exceptions import BatchKwargsError
 from great_expectations.types import ClassConfig
 
 from ..types.configurations import classConfigSchema
-from .datasource import Datasource
-from .util import S3Url, hash_pandas_dataframe
+from .datasource import LegacyDatasource
 
 logger = logging.getLogger(__name__)
 
 HASH_THRESHOLD = 1e9
 
 
-class PandasDatasource(Datasource):
+class PandasDatasource(LegacyDatasource):
     """The PandasDatasource produces PandasDataset objects and supports generators capable of
     interacting with the local filesystem (the default subdir_reader generator), and from
     existing in-memory dataframes.
@@ -32,6 +32,7 @@ class PandasDatasource(Datasource):
         "reader_options",
         "limit",
         "dataset_options",
+        "boto3_options",
     }
 
     @classmethod
@@ -83,6 +84,7 @@ class PandasDatasource(Datasource):
                     "boto3_options must be a dictionary of key-value pairs to pass to boto3 upon "
                     "initialization."
                 )
+            configuration["boto3_options"] = boto3_options
 
         if reader_options is not None:
             if isinstance(reader_options, dict):
@@ -141,6 +143,7 @@ class PandasDatasource(Datasource):
         self._reader_options = configuration_with_defaults.get("reader_options", None)
         self._limit = configuration_with_defaults.get("limit", None)
 
+    # TODO: move to data connector
     def process_batch_parameters(
         self, reader_method=None, reader_options=None, limit=None, dataset_options=None,
     ):
@@ -178,6 +181,7 @@ class PandasDatasource(Datasource):
 
         return batch_kwargs
 
+    # TODO: move to execution engine or make a wrapper
     def get_batch(self, batch_kwargs, batch_parameters=None):
         # We will use and manipulate reader_options along the way
         reader_options = batch_kwargs.get("reader_options", {})
@@ -198,6 +202,10 @@ class PandasDatasource(Datasource):
             df = reader_fn(path, **reader_options)
 
         elif "s3" in batch_kwargs:
+            warnings.warn(
+                "Direct GE Support for the s3 BatchKwarg will be removed in a future release. Please use a path including the s3a:// protocol instead.",
+                DeprecationWarning,
+            )
             try:
                 import boto3
 

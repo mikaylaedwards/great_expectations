@@ -5,7 +5,8 @@ from collections import OrderedDict
 import mistune
 import pytest
 
-from great_expectations.core import ExpectationConfiguration, ExpectationSuite
+from great_expectations.core.expectation_configuration import ExpectationConfiguration
+from great_expectations.core.expectation_suite import ExpectationSuite
 from great_expectations.data_context.util import file_relative_path
 from great_expectations.render.renderer import (
     ExpectationSuitePageRenderer,
@@ -238,7 +239,8 @@ def test_ValidationResultsPageRenderer_render_validation_header(
             },
         },
     }
-    import pprint 
+    import pprint
+
     pprint.pprint(validation_header)
     assert validation_header == expected_validation_header
 
@@ -515,10 +517,11 @@ def test_snapshot_ValidationResultsPageRenderer_render_with_run_info_at_end(
         titanic_profiled_evrs_1
     ).to_json_dict()
     import pprint
-    pprint.pprint(rendered_validation_results['sections'])
-    with open(file_relative_path(__file__, "./fixtures/ValidationResultsPageRenderer_render_with_run_info_at_end_nc.json"), "w") as f:
-        json.dump(rendered_validation_results, f, indent=2)
-    # pprint.pprint(ValidationResultsPageRenderer_render_with_run_info_at_end)
+
+    pprint.pprint(rendered_validation_results["sections"])
+    # with open(file_relative_path(__file__, "./fixtures/ValidationResultsPageRenderer_render_with_run_info_at_end_nc.json"), "w") as f:
+    #     json.dump(rendered_validation_results, f, indent=2)
+    pprint.pprint(ValidationResultsPageRenderer_render_with_run_info_at_end)
     assert (
         rendered_validation_results
         == ValidationResultsPageRenderer_render_with_run_info_at_end
@@ -535,9 +538,9 @@ def test_snapshot_ValidationResultsPageRenderer_render_with_run_info_at_start(
     rendered_validation_results = validation_results_page_renderer.render(
         titanic_profiled_evrs_1
     ).to_json_dict()
-    # print(rendered_validation_results)
-    with open(file_relative_path(__file__, "./fixtures/ValidationResultsPageRenderer_render_with_run_info_at_start_nc.json"), "w") as f:
-        json.dump(rendered_validation_results, f, indent=2)
+    print(rendered_validation_results)
+    # with open(file_relative_path(__file__, "./fixtures/ValidationResultsPageRenderer_render_with_run_info_at_start_nc.json"), "w") as f:
+    #     json.dump(rendered_validation_results, f, indent=2)
 
     assert (
         rendered_validation_results
